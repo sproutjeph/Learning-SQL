@@ -1,0 +1,189 @@
+Certainly! Here's a detailed, technical summary of Chapter 4 in MDX format:
+
+````mdx
+# Chapter 4: Filtering
+
+## Condition Evaluation
+
+### Basic Conditions
+
+- Multiple conditions separated by `AND` or `OR`
+- `AND`: All conditions must be true
+- `OR`: At least one condition must be true
+
+Example:
+
+```sql
+SELECT emp_id, fname, lname, start_date, title
+FROM employee
+WHERE title = 'Head Teller'
+  AND start_date > '2006-01-01';
+```
+````
+
+### Using Parentheses
+
+- Grouping conditions for complex logic
+
+Example:
+
+```sql
+SELECT emp_id, fname, lname, start_date, title
+FROM employee
+WHERE (title = 'Head Teller' AND start_date > '2006-01-01')
+   OR (title = 'Teller' AND start_date > '2007-01-01');
+```
+
+### Using the NOT Operator
+
+- Negates a condition
+
+Example:
+
+```sql
+SELECT emp_id, fname, lname, start_date, title
+FROM employee
+WHERE end_date IS NULL
+  AND NOT (title = 'Teller' OR start_date < '2007-01-01');
+```
+
+## Condition Types
+
+### Equality Conditions
+
+- Uses `=` operator
+
+Example:
+
+```sql
+SELECT pt.name product_type, p.name product
+FROM product p INNER JOIN product_type pt
+  ON p.product_type_cd = pt.product_type_cd
+WHERE pt.name = 'Customer Accounts';
+```
+
+### Inequality Conditions
+
+- Uses `!=` or `<>` operators
+
+Example:
+
+```sql
+SELECT pt.name product_type, p.name product
+FROM product p INNER JOIN product_type pt
+  ON p.product_type_cd = pt.product_type_cd
+WHERE pt.name <> 'Customer Accounts';
+```
+
+### Range Conditions
+
+- Uses `<`, `>`, `<=`, `>=`, `BETWEEN` operators
+
+Example:
+
+```sql
+SELECT emp_id, fname, lname, start_date
+FROM employee
+WHERE start_date BETWEEN '2005-01-01' AND '2007-01-01';
+```
+
+### Membership Conditions
+
+- Uses `IN` operator
+
+Example:
+
+```sql
+SELECT account_id, product_cd, cust_id, avail_balance
+FROM account
+WHERE product_cd IN ('CHK','SAV','CD','MM');
+```
+
+#### Using Subqueries with IN
+
+```sql
+SELECT account_id, product_cd, cust_id, avail_balance
+FROM account
+WHERE product_cd IN (SELECT product_cd
+                     FROM product
+                     WHERE product_type_cd = 'ACCOUNT');
+```
+
+### Matching Conditions
+
+- Uses `LIKE` operator with wildcards
+- `_`: Matches exactly one character
+- `%`: Matches any number of characters
+
+Example:
+
+```sql
+SELECT lname
+FROM employee
+WHERE lname LIKE '_a%e%';
+```
+
+#### Using Regular Expressions
+
+- Uses `REGEXP` operator (MySQL)
+
+Example:
+
+```sql
+SELECT emp_id, fname, lname
+FROM employee
+WHERE lname REGEXP '^[FG]';
+```
+
+## Null: Special Considerations
+
+### Testing for Null
+
+- Uses `IS NULL` operator
+
+Example:
+
+```sql
+SELECT emp_id, fname, lname, superior_emp_id
+FROM employee
+WHERE superior_emp_id IS NULL;
+```
+
+### Pitfalls with Null
+
+- Null is not equal to anything, including itself
+
+Example (incorrect):
+
+```sql
+SELECT emp_id, fname, lname, superior_emp_id
+FROM employee
+WHERE superior_emp_id = NULL;
+```
+
+Example (correct):
+
+```sql
+SELECT emp_id, fname, lname, superior_emp_id
+FROM employee
+WHERE superior_emp_id IS NOT NULL;
+```
+
+### Null in Complex Conditions
+
+- Be careful when combining null checks with other conditions
+
+Example:
+
+```sql
+SELECT emp_id, fname, lname, superior_emp_id
+FROM employee
+WHERE superior_emp_id != 6 OR superior_emp_id IS NULL;
+```
+
+This chapter delves into the intricacies of filtering data in SQL queries. It covers various types of conditions, the proper use of logical operators, and special considerations when dealing with null values. The examples demonstrate how to construct complex WHERE clauses to precisely filter data based on multiple criteria.
+
+```
+
+This summary provides a technical overview of Chapter 4, with detailed explanations of the SQL queries used and the concepts they illustrate, focusing on the various filtering techniques and considerations in SQL.
+```

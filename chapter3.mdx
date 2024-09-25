@@ -1,0 +1,220 @@
+Certainly! Here's a detailed, technical summary of Chapter 3 in MDX format:
+
+````mdx
+# Chapter 3: Query Primer
+
+## Query Mechanics
+
+- Database connections: Assigned unique identifiers
+- Query execution process:
+  1. Permission check
+  2. Syntax validation
+  3. Optimization
+  4. Execution
+
+## Query Clauses
+
+### SELECT Clause
+
+- Determines columns in the result set
+- Can include:
+  - Column names
+  - Literals
+  - Expressions
+  - Function calls
+
+Example:
+
+```sql
+SELECT emp_id, 'ACTIVE' status, emp_id * 3.14159 AS emp_id_pi, UPPER(lname) AS last_name_upper
+FROM employee;
+```
+````
+
+#### Column Aliases
+
+- Use `AS` keyword or space between column and alias
+
+```sql
+SELECT emp_id, 'ACTIVE' AS status, emp_id * 3.14159 empid_x_pi
+FROM employee;
+```
+
+#### Removing Duplicates
+
+- Use `DISTINCT` keyword
+
+```sql
+SELECT DISTINCT cust_id
+FROM account;
+```
+
+### FROM Clause
+
+- Defines tables and table joins
+- Can include subqueries and views
+
+#### Subquery-generated tables
+
+```sql
+SELECT e.emp_id, e.fname, e.lname
+FROM (SELECT emp_id, fname, lname, start_date, title
+      FROM employee) e;
+```
+
+#### Views
+
+```sql
+CREATE VIEW employee_vw AS
+SELECT emp_id, fname, lname,
+       YEAR(start_date) start_year
+FROM employee;
+
+SELECT emp_id, start_year
+FROM employee_vw;
+```
+
+#### Table Links (Joins)
+
+```sql
+SELECT e.emp_id, e.fname, e.lname, d.name dept_name
+FROM employee e INNER JOIN department d
+  ON e.dept_id = d.dept_id;
+```
+
+#### Table Aliases
+
+```sql
+SELECT e.emp_id, e.fname, e.lname, d.name dept_name
+FROM employee AS e INNER JOIN department AS d
+  ON e.dept_id = d.dept_id;
+```
+
+### WHERE Clause
+
+- Filters rows based on specified conditions
+- Uses logical operators: AND, OR, NOT
+
+Example:
+
+```sql
+SELECT emp_id, fname, lname, start_date, title
+FROM employee
+WHERE title = 'Teller'
+  AND start_date < '2007-01-01';
+```
+
+### GROUP BY and HAVING Clauses
+
+- GROUP BY: Groups rows based on column values
+- HAVING: Filters grouped data
+
+Example:
+
+```sql
+SELECT d.name, COUNT(e.emp_id) num_employees
+FROM department d INNER JOIN employee e
+  ON d.dept_id = e.dept_id
+GROUP BY d.name
+HAVING COUNT(e.emp_id) > 2;
+```
+
+### ORDER BY Clause
+
+- Sorts the result set
+- Can sort by multiple columns, expressions, or column positions
+
+Examples:
+
+```sql
+SELECT open_emp_id, product_cd
+FROM account
+ORDER BY open_emp_id;
+
+SELECT open_emp_id, product_cd
+FROM account
+ORDER BY open_emp_id, product_cd;
+
+SELECT emp_id, title, start_date, fname, lname
+FROM employee
+ORDER BY 2, 5;
+```
+
+## Filtering Techniques
+
+### Equality Conditions
+
+```sql
+SELECT pt.name product_type, p.name product
+FROM product p INNER JOIN product_type pt
+  ON p.product_type_cd = pt.product_type_cd
+WHERE pt.name = 'Customer Accounts';
+```
+
+### Inequality Conditions
+
+```sql
+SELECT pt.name product_type, p.name product
+FROM product p INNER JOIN product_type pt
+  ON p.product_type_cd = pt.product_type_cd
+WHERE pt.name <> 'Customer Accounts';
+```
+
+### Range Conditions
+
+```sql
+SELECT emp_id, fname, lname, start_date
+FROM employee
+WHERE start_date BETWEEN '2005-01-01' AND '2007-01-01';
+```
+
+### Membership Conditions
+
+```sql
+SELECT account_id, product_cd, cust_id, avail_balance
+FROM account
+WHERE product_cd IN ('CHK','SAV','CD','MM');
+```
+
+### Matching Conditions
+
+```sql
+SELECT lname
+FROM employee
+WHERE lname LIKE '_a%e%';
+```
+
+## Complex Queries
+
+### Subqueries in FROM clause
+
+```sql
+SELECT a.account_id, a.cust_id, a.open_date, a.product_cd
+FROM account a INNER JOIN
+  (SELECT emp_id, assigned_branch_id
+   FROM employee
+   WHERE start_date < '2007-01-01'
+     AND (title = 'Teller' OR title = 'Head Teller')) e
+  ON a.open_emp_id = e.emp_id
+INNER JOIN
+  (SELECT branch_id
+   FROM branch
+   WHERE name = 'Woburn Branch') b
+  ON e.assigned_branch_id = b.branch_id;
+```
+
+### Self-Joins
+
+```sql
+SELECT e.fname, e.lname,
+       e_mgr.fname mgr_fname, e_mgr.lname mgr_lname
+FROM employee e INNER JOIN employee e_mgr
+  ON e.superior_emp_id = e_mgr.emp_id;
+```
+
+This chapter covers the fundamentals of SQL queries, including the various clauses of the SELECT statement, filtering techniques, and more complex query structures. It provides a foundation for understanding how to retrieve and manipulate data from relational databases using SQL.
+
+```
+
+This summary provides a more technical overview of Chapter 3, with detailed explanations of the SQL queries used and the concepts they illustrate.
+```
