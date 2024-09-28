@@ -1,0 +1,151 @@
+Here's a summary of Chapter 6 on Working with Sets, formatted as an MDX file:
+
+# Chapter 6: Working with Sets
+
+## Key Concepts
+
+- Set theory concepts apply to SQL operations
+- SQL provides set operators for combining query results
+- Set operators include UNION, INTERSECT, and EXCEPT
+- Set operators work on result sets with compatible columns
+
+## Set Theory Primer
+
+Set theory concepts in SQL:
+
+- Union: Combination of two sets
+- Intersection: Common elements between two sets
+- Except: Elements in one set but not in another
+
+## Set Operators in SQL
+
+### UNION and UNION ALL
+
+UNION combines result sets and removes duplicates. UNION ALL includes all rows, including duplicates.
+
+```sql
+SELECT 'IND' type_cd, cust_id, lname name
+FROM individual
+UNION ALL
+SELECT 'BUS' type_cd, cust_id, name
+FROM business;
+```
+
+This query combines individual and business customer data.
+
+### INTERSECT
+
+INTERSECT returns only rows that appear in both result sets. (Note: Not supported in MySQL)
+
+```sql
+SELECT emp_id
+FROM employee
+INTERSECT
+SELECT open_emp_id
+FROM account;
+```
+
+This would return employee IDs for employees who have opened accounts.
+
+### EXCEPT
+
+EXCEPT returns rows from the first set that don't appear in the second set. (Note: Not supported in MySQL)
+
+```sql
+SELECT emp_id
+FROM employee
+EXCEPT
+SELECT DISTINCT open_emp_id
+FROM account;
+```
+
+This would return employee IDs for employees who haven't opened any accounts.
+
+## Set Operation Rules
+
+### Sorting Combined Results
+
+Use ORDER BY at the end of the compound query:
+
+```sql
+SELECT emp_id, assigned_branch_id
+FROM employee
+WHERE title = 'Teller'
+UNION
+SELECT open_emp_id, open_branch_id
+FROM account
+WHERE product_cd = 'SAV'
+ORDER BY emp_id;
+```
+
+### Set Operation Precedence
+
+Operations are performed from top to bottom unless parentheses are used:
+
+```sql
+(SELECT cust_id
+ FROM account
+ WHERE product_cd IN ('SAV', 'MM')
+ UNION ALL
+ SELECT a.cust_id
+ FROM account a INNER JOIN branch b
+ ON a.open_branch_id = b.branch_id
+ WHERE b.name = 'Woburn Branch')
+INTERSECT
+(SELECT cust_id
+ FROM account
+ WHERE avail_balance BETWEEN 500 AND 2500);
+```
+
+## Practical Applications
+
+### Combining Related Data
+
+Use UNION to combine data from related tables:
+
+```sql
+SELECT 'CUSTOMER' type, cust_id, lname name
+FROM individual
+UNION ALL
+SELECT 'EMPLOYEE' type, emp_id, lname
+FROM employee;
+```
+
+### Comparing Sets
+
+Use set operators to compare different data sets:
+
+```sql
+SELECT emp_id
+FROM employee
+WHERE assigned_branch_id = 1
+EXCEPT
+SELECT DISTINCT open_emp_id
+FROM account
+WHERE open_branch_id = 1;
+```
+
+This finds employees assigned to branch 1 who haven't opened accounts there.
+
+### Data Fabrication
+
+Use set operators to generate test data or date ranges:
+
+```sql
+SELECT 'Small' name, 0 low_limit, 4999.99 high_limit
+UNION ALL
+SELECT 'Medium' name, 5000 low_limit, 9999.99 high_limit
+UNION ALL
+SELECT 'Large' name, 10000 low_limit, 9999999.99 high_limit;
+```
+
+## Key Takeaways
+
+- Set operators work on result sets, not directly on tables
+- UNION combines sets, optionally removing duplicates
+- INTERSECT finds common elements (not in MySQL)
+- EXCEPT finds differences between sets (not in MySQL)
+- Result sets must have compatible columns for set operations
+- Set operators are useful for combining related data, comparing sets, and data fabrication
+
+Understanding set operations allows for powerful data manipulation and analysis across multiple queries or tables.
