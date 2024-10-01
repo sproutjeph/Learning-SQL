@@ -1,0 +1,184 @@
+Here's a summary of Chapter 9 on Subqueries, formatted as an MDX file:
+
+# Chapter 9: Subqueries
+
+## What Is a Subquery?
+
+A subquery is a query contained within another SQL statement. It can return various result sets:
+
+- A single row with a single column
+- Multiple rows with a single column
+- Multiple rows and columns
+
+Example of a scalar subquery:
+
+```sql
+SELECT account_id, product_cd, cust_id, avail_balance
+FROM account
+WHERE account_id = (SELECT MAX(account_id) FROM account);
+```
+
+## Subquery Types
+
+### Noncorrelated Subqueries
+
+These are independent of the containing statement and can be executed on their own.
+
+```sql
+SELECT emp_id, fname, lname, title
+FROM employee
+WHERE emp_id IN (SELECT superior_emp_id
+                 FROM employee);
+```
+
+This query finds all employees who are supervisors.
+
+### Correlated Subqueries
+
+These reference columns from the containing statement and are dependent on it.
+
+```sql
+SELECT c.cust_id, c.cust_type_cd, c.city
+FROM customer c
+WHERE 2 = (SELECT COUNT(*)
+           FROM account a
+           WHERE a.cust_id = c.cust_id);
+```
+
+This finds customers with exactly two accounts.
+
+## Subquery Operators
+
+### The IN and NOT IN Operators
+
+Used to check if a value exists within a set returned by a subquery.
+
+```sql
+SELECT account_id, product_cd, cust_id
+FROM account
+WHERE product_cd IN (SELECT product_cd
+                     FROM product
+                     WHERE product_type_cd = 'LOAN');
+```
+
+### The ALL Operator
+
+Compares a value to every value in a set.
+
+```sql
+SELECT emp_id, fname, lname, title
+FROM employee
+WHERE emp_id <> ALL (SELECT superior_emp_id
+                     FROM employee
+                     WHERE superior_emp_id IS NOT NULL);
+```
+
+This finds all employees who are not supervisors.
+
+### The ANY Operator
+
+A condition using ANY is true if any of the comparisons are true.
+
+```sql
+SELECT account_id, cust_id, product_cd, avail_balance
+FROM account
+WHERE avail_balance > ANY (SELECT a.avail_balance
+                           FROM account a INNER JOIN individual i
+                           ON a.cust_id = i.cust_id
+                           WHERE i.fname = 'Frank' AND i.lname = 'Tucker');
+```
+
+This finds accounts with a balance greater than any of Frank Tucker's accounts.
+
+## Multicolumn Subqueries
+
+Subqueries can return multiple columns for comparison.
+
+```sql
+SELECT account_id, product_cd, cust_id
+FROM account
+WHERE (open_branch_id, open_emp_id) IN
+      (SELECT b.branch_id, e.emp_id
+       FROM branch b INNER JOIN employee e
+       ON b.branch_id = e.assigned_branch_id
+       WHERE b.name = 'Woburn Branch'
+       AND (e.title = 'Teller' OR e.title = 'Head Teller'));
+```
+
+## The EXISTS Operator
+
+Used to check for the existence of rows returned by a subquery.
+
+```sql
+SELECT a.account_id, a.product_cd, a.cust_id, a.avail_balance
+FROM account a
+WHERE EXISTS (SELECT 1
+              FROM transaction t
+              WHERE t.account_id = a.account_id
+              AND t.txn_date = '2008-09-22');
+```
+
+This finds accounts with transactions on a specific date.
+
+## Subqueries as Data Sources
+
+Subqueries can be used in the FROM clause to create derived tables.
+
+```sql
+SELECT e.emp_id, e.fname, e.lname,
+       levels.name level_name, levels.type_cd level_type
+FROM employee e INNER JOIN
+     (SELECT 'Associate' name, 'AS' type_cd, 1 level_nbr
+      UNION ALL
+      SELECT 'Supervisor' name, 'SV' type_cd, 2 level_nbr
+      UNION ALL
+      SELECT 'Manager' name, 'MG' type_cd, 3 level_nbr) levels
+ON e.job_level = levels.level_nbr;
+```
+
+This creates a derived table for employee levels and joins it with the employee table.
+
+## Subqueries in Filter Conditions
+
+Subqueries can be used in WHERE and HAVING clauses for filtering.
+
+```sql
+SELECT open_emp_id, COUNT(*) how_many
+FROM account
+GROUP BY open_emp_id
+HAVING COUNT(*) = (SELECT MAX(emp_cnt.how_many)
+                   FROM (SELECT COUNT(*) how_many
+                         FROM account
+                         GROUP BY open_emp_id) emp_cnt);
+```
+
+This finds the employee(s) who opened the most accounts.
+
+## Subqueries as Expression Generators
+
+Scalar subqueries can be used wherever an expression is allowed.
+
+```sql
+SELECT
+  (SELECT p.name FROM product p
+   WHERE p.product_cd = a.product_cd) product,
+  (SELECT b.name FROM branch b
+   WHERE b.branch_id = a.open_branch_id) branch,
+  (SELECT CONCAT(e.fname, ' ', e.lname) FROM employee e
+   WHERE e.emp_id = a.open_emp_id) name,
+  SUM(a.avail_balance) tot_deposits
+FROM account a
+GROUP BY a.product_cd, a.open_branch_id, a.open_emp_id;
+```
+
+This uses correlated subqueries in the SELECT clause to retrieve related data.
+
+## Key Takeaways
+
+- Subqueries provide a powerful way to construct complex queries
+- They can be used in various parts of SQL statements (SELECT, FROM, WHERE, HAVING)
+- Understanding the different types and uses of subqueries is crucial for advanced SQL programming
+- Correlated subqueries can reference the outer query, allowing for more dynamic comparisons
+- Subqueries can generate data, create conditions, and serve as derived tables
+
+Remember that while these examples use MySQL syntax, other databases may have slight variations in syntax or available features.
