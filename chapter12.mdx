@@ -1,0 +1,153 @@
+Here's a summary of Chapter 12 on Transactions, formatted as an MDX file:
+
+# Chapter 12: Transactions
+
+## Multiuser Databases
+
+Multiuser databases allow multiple users to query and modify data simultaneously, requiring mechanisms to manage concurrent access.
+
+## Locking
+
+Locks control simultaneous use of data resources.
+
+### Locking Strategies
+
+1. Read and Write Locks:
+
+   - Readers request read locks
+   - Writers request write locks
+   - Only one write lock at a time, read requests blocked until write lock released
+
+2. Versioning:
+   - Writers request write locks
+   - Readers don't need locks, server ensures consistent view of data
+
+### Lock Granularities
+
+- Table locks: Lock entire tables
+- Page locks: Lock memory segments (2 KB to 16 KB)
+- Row locks: Lock individual rows
+
+## What Is a Transaction?
+
+A transaction is a mechanism for grouping multiple SQL statements such that either all or none of the statements succeed.
+
+### Transaction Properties (ACID)
+
+- Atomicity: All operations complete successfully or none do
+- Consistency: Database remains in a consistent state before and after transaction
+- Isolation: Transactions don't interfere with each other
+- Durability: Once committed, changes are permanent
+
+### Transaction Example
+
+```sql
+START TRANSACTION;
+
+UPDATE account SET avail_balance = avail_balance - 500
+WHERE account_id = 9988 AND avail_balance > 500;
+
+IF <exactly one row was updated> THEN
+  UPDATE account SET avail_balance = avail_balance + 500
+  WHERE account_id = 9989;
+
+  IF <exactly one row was updated> THEN
+    COMMIT;
+  ELSE
+    ROLLBACK;
+  END IF;
+ELSE
+  ROLLBACK;
+END IF;
+```
+
+This transaction transfers $500 between accounts, rolling back if any step fails.
+
+## Starting a Transaction
+
+Different databases handle transaction creation differently:
+
+- Oracle: Always in a transaction
+- MySQL and SQL Server: Must explicitly start transactions
+
+For MySQL and SQL Server:
+
+```sql
+START TRANSACTION;
+-- or
+BEGIN TRANSACTION; -- SQL Server
+```
+
+To disable auto-commit mode:
+
+```sql
+SET autocommit = 0; -- MySQL
+SET IMPLICIT_TRANSACTIONS ON; -- SQL Server
+```
+
+## Ending a Transaction
+
+Transactions are ended with COMMIT or ROLLBACK:
+
+```sql
+COMMIT;
+-- or
+ROLLBACK;
+```
+
+Transactions can also end due to:
+
+- Server shutdown
+- Execution of schema statements (e.g., ALTER TABLE)
+- Deadlock detection and resolution
+
+## Transaction Savepoints
+
+Savepoints allow partial rollbacks within a transaction:
+
+```sql
+START TRANSACTION;
+
+UPDATE product
+SET date_retired = CURRENT_TIMESTAMP()
+WHERE product_cd = 'XYZ';
+
+SAVEPOINT before_close_accounts;
+
+UPDATE account
+SET status = 'CLOSED', close_date = CURRENT_TIMESTAMP(),
+    last_activity_date = CURRENT_TIMESTAMP()
+WHERE product_cd = 'XYZ';
+
+ROLLBACK TO SAVEPOINT before_close_accounts;
+
+COMMIT;
+```
+
+This transaction retires a product but rolls back account closures.
+
+## Choosing a Storage Engine (MySQL)
+
+MySQL offers multiple storage engines with different transaction support:
+
+- MyISAM: Non-transactional, table-level locking
+- InnoDB: Transactional, row-level locking
+- MEMORY: Non-transactional, in-memory tables
+- NDB: Transactional, designed for clustering
+
+For transactional support, use InnoDB:
+
+```sql
+ALTER TABLE my_table ENGINE = InnoDB;
+```
+
+## Key Takeaways
+
+- Transactions ensure data integrity in multi-user environments
+- ACID properties guarantee reliable processing of transactions
+- Different databases have varying approaches to transaction management
+- Savepoints allow for fine-grained control within transactions
+- Choice of storage engine in MySQL affects transactional capabilities
+- Understanding transactions is crucial for maintaining data consistency and integrity
+
+Remember that while these examples often use MySQL syntax, transactional concepts apply across most relational database systems, although exact implementation details may vary.
