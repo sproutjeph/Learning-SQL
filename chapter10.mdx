@@ -1,0 +1,120 @@
+Here's a summary of Chapter 10 on Joins Revisited, formatted as an MDX file:
+
+# Chapter 10: Joins Revisited
+
+## Outer Joins
+
+Outer joins allow you to retrieve data from multiple tables, including rows that don't have matching values in the joined tables.
+
+### Left Outer Join
+
+Returns all rows from the left table and matching rows from the right table.
+
+```sql
+SELECT a.account_id, a.cust_id, b.name
+FROM account a LEFT OUTER JOIN business b
+  ON a.cust_id = b.cust_id;
+```
+
+This query retrieves all accounts, including business names for business accounts.
+
+### Right Outer Join
+
+Returns all rows from the right table and matching rows from the left table.
+
+```sql
+SELECT c.cust_id, b.name
+FROM customer c RIGHT OUTER JOIN business b
+  ON c.cust_id = b.cust_id;
+```
+
+This query retrieves all businesses, including those without associated customer records.
+
+## Three-Way Outer Joins
+
+Joining multiple tables with outer joins:
+
+```sql
+SELECT a.account_id, a.product_cd,
+       CONCAT(i.fname, ' ', i.lname) person_name,
+       b.name business_name
+FROM account a
+LEFT OUTER JOIN individual i ON a.cust_id = i.cust_id
+LEFT OUTER JOIN business b ON a.cust_id = b.cust_id;
+```
+
+This query retrieves all accounts with associated individual or business names.
+
+## Self Outer Joins
+
+Joining a table to itself using an outer join:
+
+```sql
+SELECT e.fname, e.lname,
+       e_mgr.fname mgr_fname, e_mgr.lname mgr_lname
+FROM employee e LEFT OUTER JOIN employee e_mgr
+  ON e.superior_emp_id = e_mgr.emp_id;
+```
+
+This query retrieves all employees and their managers, including employees without managers.
+
+## Cross Joins
+
+A cross join produces the Cartesian product of two tables.
+
+```sql
+SELECT pt.name, p.product_cd, p.name
+FROM product p CROSS JOIN product_type pt;
+```
+
+This creates all possible combinations of products and product types.
+
+### Practical Use of Cross Joins
+
+Generating a series of dates:
+
+```sql
+SELECT DATE_ADD('2008-01-01',
+       INTERVAL (ones.num + tens.num + hundreds.num) DAY) dt
+FROM
+  (SELECT 0 num UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3
+   UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL
+   SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) ones
+CROSS JOIN
+  (SELECT 0 num UNION ALL SELECT 10 UNION ALL SELECT 20 UNION ALL SELECT 30
+   UNION ALL SELECT 40 UNION ALL SELECT 50 UNION ALL SELECT 60 UNION ALL
+   SELECT 70 UNION ALL SELECT 80 UNION ALL SELECT 90) tens
+CROSS JOIN
+  (SELECT 0 num UNION ALL SELECT 100 UNION ALL SELECT 200 UNION ALL SELECT 300) hundreds
+WHERE DATE_ADD('2008-01-01',
+      INTERVAL (ones.num + tens.num + hundreds.num) DAY) < '2009-01-01'
+ORDER BY 1;
+```
+
+This generates all dates in the year 2008.
+
+## Natural Joins
+
+Natural joins automatically join tables based on columns with the same name.
+
+```sql
+SELECT a.account_id, a.cust_id, c.cust_type_cd, c.fed_id
+FROM account a NATURAL JOIN customer c;
+```
+
+This joins the account and customer tables on the cust_id column.
+
+### Caution with Natural Joins
+
+Natural joins can lead to unexpected results if tables have multiple columns with the same name that aren't meant to be join conditions.
+
+## Key Takeaways
+
+- Outer joins allow inclusion of unmatched rows from one or both tables
+- Left and right outer joins determine which table's unmatched rows are included
+- Self outer joins are useful for hierarchical data like employee-manager relationships
+- Cross joins create all possible combinations between two tables
+- Natural joins can be convenient but risky; explicit join conditions are generally safer
+- Understanding different join types is crucial for complex data retrieval and analysis
+
+Remember to always consider the specific requirements of your query when choosing a join type, and be aware of the potential impact on performance, especially with large datasets.
